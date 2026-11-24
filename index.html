@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#fbf8f6">
+  <title>Гузал — калькулятор услуг салона</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #342d31;
+      --muted: #81767b;
+      --rose: #a64d6c;
+      --rose-dark: #873a57;
+      --rose-pale: #faedf1;
+      --line: #eee5e7;
+      --paper: #fff;
+      --background: #fbf8f6;
+      --green: #567b63;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      min-width: 280px;
+      min-height: 100vh;
+      margin: 0;
+      padding: 40px 18px;
+      color: var(--ink);
+      background:
+        radial-gradient(ellipse at 10% 0%, #f8e9ed 0, transparent 34rem),
+        var(--background);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    button, input { font: inherit; }
+
+    .page { width: min(100%, 560px); margin: 0 auto; }
+
+    .salon-brand {
+      display: flex;
+      align-items: center;
+      gap: 11px;
+      margin-bottom: 22px;
+    }
+
+    .salon-logo {
+      display: grid;
+      width: 42px;
+      height: 42px;
+      flex: 0 0 auto;
+      place-items: center;
+      border: 1.5px solid var(--rose);
+      border-radius: 50%;
+      background: var(--paper);
+      color: var(--rose-dark);
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 23px;
+      font-weight: 600;
+      box-shadow: 0 4px 12px rgba(166, 77, 108, .1);
+    }
+
+    .salon-name {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: 21px;
+      font-weight: 600;
+      letter-spacing: -.02em;
+    }
+
+    .language-switch {
+      display: flex;
+      gap: 3px;
+      margin-left: auto;
+      padding: 3px;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      background: var(--paper);
+    }
+
+    .language-button {
+      min-width: 39px;
+      min-height: 34px;
+      padding: 0 8px;
+      border: 0;
+      border-radius: 9px;
+      background: transparent;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .language-button[aria-pressed="true"] {
+      background: var(--rose-pale);
+      color: var(--rose-dark);
+    }
+
+    h1 {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(32px, 8vw, 43px);
+      font-weight: 500;
+      letter-spacing: -.035em;
+      line-height: 1.12;
+    }
+
+    .intro {
+      margin: 12px 0 26px;
+      color: var(--muted);
+      font-size: 15px;
+      line-height: 1.55;
+    }
+
+    .card {
+      overflow: hidden;
+      border: 1px solid rgba(238, 229, 231, .9);
+      border-radius: 22px;
+      background: var(--paper);
+      box-shadow: 0 18px 55px rgba(89, 58, 68, .08);
+    }
+
+    .services { padding: 7px 22px 4px; }
+
+    .section-heading {
+      margin: 15px 0 7px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 750;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+    }
+
+    .service {
+      display: grid;
+      grid-template-columns: 24px minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 12px;
+      min-height: 76px;
+      border-bottom: 1px solid var(--line);
+      cursor: pointer;
+    }
+
+    .service:last-child { border-bottom: 0; }
+
+    .service input[type="checkbox"] {
+      width: 21px;
+      height: 21px;
+      margin: 0;
+      accent-color: var(--rose);
+      cursor: pointer;
+    }
+
+    .service-copy { min-width: 0; cursor: pointer; }
+    .service-name { font-size: 15px; font-weight: 650; }
+    .service-time { display: block; margin-top: 5px; color: var(--muted); font-size: 13px; }
+
+    .service-price {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      white-space: nowrap;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .service-price-input {
+      width: 86px;
+      height: 38px;
+      padding: 0 7px;
+      border: 1px solid var(--line);
+      border-radius: 9px;
+      background: #fffdfd;
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 700;
+      text-align: right;
+    }
+
+    .service-price-input[aria-invalid="true"] { border-color: #b94b4b; }
+    .service-price-input:focus { border-color: var(--rose); }
+    .service-currency { color: var(--muted); }
+
+    .price-status {
+      margin: 10px 0 12px;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .price-status.is-error { color: #a13c3c; }
+
+    .discount {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin: 0 22px;
+      padding: 18px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .discount label { font-size: 14px; font-weight: 650; }
+
+    .discount-field {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-end;
+      gap: 5px;
+    }
+
+    .discount-control {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 11px;
+      background: #fffdfd;
+    }
+
+    .discount-control:focus-within {
+      border-color: var(--rose);
+      box-shadow: 0 0 0 3px rgba(166, 77, 108, .1);
+    }
+
+    .discount input {
+      width: 48px;
+      height: 42px;
+      padding: 0;
+      border: 0;
+      outline: 0;
+      background: transparent;
+      color: var(--ink);
+      text-align: right;
+    }
+
+    .discount-control span { color: var(--muted); }
+
+    .discount-warning {
+      max-width: 190px;
+      margin: 0;
+      color: #a13c3c;
+      font-size: 12px;
+      line-height: 1.35;
+      text-align: right;
+    }
+
+    .result {
+      padding: 21px 22px 22px;
+      background: #fdf8f9;
+    }
+
+    .result-label { margin: 0; color: var(--muted); font-size: 13px; }
+
+    .total {
+      margin: 5px 0 0;
+      color: var(--rose-dark);
+      font-size: clamp(30px, 8vw, 38px);
+      font-weight: 750;
+      letter-spacing: -.04em;
+      line-height: 1.2;
+    }
+
+    .result-details {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 18px;
+      margin: 13px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .detail { display: inline-flex; align-items: center; gap: 7px; }
+    .detail[hidden] { display: none; }
+    .detail svg { flex: 0 0 auto; color: var(--rose); }
+
+    .savings {
+      margin: 11px 0 0;
+      color: var(--green);
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .copy-button {
+      display: flex;
+      width: 100%;
+      min-height: 52px;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+      margin-top: 19px;
+      border: 0;
+      border-radius: 13px;
+      background: var(--rose);
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .18s, transform .18s;
+    }
+
+    .copy-button:hover { background: var(--rose-dark); }
+    .copy-button:active { transform: scale(.99); }
+    .copy-button:focus-visible, .language-button:focus-visible, input:focus-visible { outline: 3px solid #dcaabb; outline-offset: 3px; }
+
+    .hint {
+      min-height: 18px;
+      margin: 10px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+      text-align: center;
+    }
+
+    @media (max-width: 420px) {
+      body { padding: 28px 14px; }
+      .services { padding-right: 17px; padding-left: 17px; }
+      .discount { margin-right: 17px; margin-left: 17px; }
+      .result { padding-right: 18px; padding-left: 18px; }
+      .service { gap: 9px; }
+      .service-name { font-size: 14px; }
+      .service-price-input { width: 78px; font-size: 13px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="salon-brand">
+      <span class="salon-logo" aria-hidden="true">Г</span>
+      <p class="salon-name">Гузал</p>
+      <div class="language-switch" role="group" aria-label="Язык / Til">
+        <button class="language-button" type="button" data-language="ru" aria-pressed="true" aria-label="Язык: русский">РУ</button>
+        <button class="language-button" type="button" data-language="uz" aria-pressed="false" aria-label="Til: o‘zbekcha">UZ</button>
+      </div>
+    </div>
+    <h1 data-i18n="heading">Калькулятор услуг</h1>
+    <p class="intro" data-i18n="intro">Выберите услуги — сумма и время обновятся автоматически.</p>
+
+    <section class="card" aria-label="Расчёт стоимости услуг" data-i18n-aria="servicesLabel">
+      <div class="services">
+        <h2 class="section-heading" data-i18n="services">Услуги</h2>
+        <div class="service">
+          <input id="service-manicure" type="checkbox" data-service-id="manicure" data-name="маникюр" data-price="80000" data-minutes="60">
+          <label class="service-copy" for="service-manicure"><span class="service-name">Маникюр</span><span class="service-time">60 минут</span></label>
+          <span class="service-price"><input class="service-price-input" type="text" data-service-id="manicure" inputmode="numeric" autocomplete="off" value="80 000" aria-label="Цена маникюра"><span class="service-currency">сум</span></span>
+        </div>
+        <div class="service">
+          <input id="service-pedicure" type="checkbox" data-service-id="pedicure" data-name="педикюр" data-price="120000" data-minutes="90">
+          <label class="service-copy" for="service-pedicure"><span class="service-name">Педикюр</span><span class="service-time">90 минут</span></label>
+          <span class="service-price"><input class="service-price-input" type="text" data-service-id="pedicure" inputmode="numeric" autocomplete="off" value="120 000" aria-label="Цена педикюра"><span class="service-currency">сум</span></span>
+        </div>
+        <div class="service">
+          <input id="service-gel-polish" type="checkbox" data-service-id="gel-polish" data-name="покрытие гель-лак" data-price="60000" data-minutes="40">
+          <label class="service-copy" for="service-gel-polish"><span class="service-name">Покрытие гель-лак</span><span class="service-time">40 минут</span></label>
+          <span class="service-price"><input class="service-price-input" type="text" data-service-id="gel-polish" inputmode="numeric" autocomplete="off" value="60 000" aria-label="Цена покрытия гель-лаком"><span class="service-currency">сум</span></span>
+        </div>
+        <div class="service">
+          <input id="service-nail-design" type="checkbox" data-service-id="nail-design" data-name="дизайн ногтей" data-price="30000" data-minutes="20">
+          <label class="service-copy" for="service-nail-design"><span class="service-name">Дизайн ногтей</span><span class="service-time">20 минут</span></label>
+          <span class="service-price"><input class="service-price-input" type="text" data-service-id="nail-design" inputmode="numeric" autocomplete="off" value="30 000" aria-label="Цена дизайна ногтей"><span class="service-currency">сум</span></span>
+        </div>
+        <div class="service">
+          <input id="service-extension" type="checkbox" data-service-id="extension" data-name="наращивание" data-price="200000" data-minutes="120">
+          <label class="service-copy" for="service-extension"><span class="service-name">Наращивание</span><span class="service-time">120 минут</span></label>
+          <span class="service-price"><input class="service-price-input" type="text" data-service-id="extension" inputmode="numeric" autocomplete="off" value="200 000" aria-label="Цена наращивания"><span class="service-currency">сум</span></span>
+        </div>
+        <p class="price-status" id="price-status" role="status">Нажмите на цену, чтобы изменить. Изменения сохраняются в этом браузере.</p>
+      </div>
+
+      <div class="discount">
+        <label for="discount" data-i18n="discount">Скидка</label>
+        <div class="discount-field">
+          <div class="discount-control">
+            <input id="discount" type="number" min="0" max="50" step="1" value="0" inputmode="numeric" aria-label="Скидка в процентах">
+            <span>%</span>
+          </div>
+          <p class="discount-warning" id="discount-warning" role="alert" hidden></p>
+        </div>
+      </div>
+
+      <div class="result" aria-live="polite">
+        <p class="result-label" data-i18n="payable">К оплате</p>
+        <p class="total" id="total">0 сум</p>
+        <div class="result-details">
+          <span class="detail">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.7"/><path d="M12 7v5l3 2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+            <span id="duration">Выберите услуги</span>
+          </span>
+          <span class="detail" id="count-detail" hidden>
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 5h14M5 12h14M5 19h14" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+            <span id="count"></span>
+          </span>
+        </div>
+        <p class="savings" id="savings" hidden></p>
+        <button class="copy-button" id="copy" type="button">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="8" y="8" width="12" height="12" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" stroke="currentColor" stroke-width="1.7"/></svg>
+          <span data-i18n="copyButton">Скопировать итог</span>
+        </button>
+        <p class="hint" id="hint" role="status">Текст можно сразу отправить клиентке</p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const serviceInputs = Array.from(document.querySelectorAll('.service input[type="checkbox"]'));
+    const priceInputs = Array.from(document.querySelectorAll('.service-price-input'));
+    const priceStatusElement = document.getElementById('price-status');
+    const discountInput = document.getElementById('discount');
+    const totalElement = document.getElementById('total');
+    const durationElement = document.getElementById('duration');
+    const countElement = document.getElementById('count');
+    const countDetail = document.getElementById('count-detail');
+    const savingsElement = document.getElementById('savings');
+    const discountWarning = document.getElementById('discount-warning');
+    const hintElement = document.getElementById('hint');
+    const languageButtons = Array.from(document.querySelectorAll('.language-button'));
+    const priceStorageKey = 'guzal-salon-prices-v1';
+    let language = 'ru';
+    let currentSummary = '';
+    let priceStatusKey = 'priceHint';
+    let priceStatusIsError = false;
+
+    const translations = {
+      ru: {
+        title: 'Гузал — калькулятор услуг салона',
+        heading: 'Калькулятор услуг',
+        intro: 'Выберите услуги — сумма и время обновятся автоматически.',
+        services: 'Услуги',
+        servicesLabel: 'Расчёт стоимости услуг',
+        discount: 'Скидка',
+        discountInput: 'Скидка в процентах',
+        payable: 'К оплате',
+        copyButton: 'Скопировать итог',
+        emptyDuration: 'Выберите услуги',
+        hour: ['час', 'часа', 'часов'],
+        minute: ['минута', 'минуты', 'минут'],
+        currency: 'сум',
+        noServices: 'Пожалуйста, выберите услуги.',
+        summaryStart: 'Ваши услуги: ',
+        summaryTotal: '. Итого: ',
+        summaryDuration: ', примерно ',
+        serviceCount: ['услуга', 'услуги', 'услуг'],
+        savings: 'Скидка',
+        savingsSeparator: ' — экономия ',
+        maxDiscount: 'Максимальная скидка — 50%',
+        negativeDiscount: 'Скидка не может быть отрицательной',
+        priceHint: 'Нажмите на цену, чтобы изменить. Изменения сохраняются в этом браузере.',
+        priceSaved: 'Цена сохранена в браузере',
+        priceStorageError: 'Не удалось сохранить или загрузить цены в этом браузере.',
+        priceInvalid: 'Введите целую цену цифрами, без букв и знака минус.',
+        priceRestored: 'Неверная цена отменена; возвращено предыдущее значение.',
+        priceInput: 'Цена услуги',
+        copyHint: 'Текст можно сразу отправить клиентке',
+        noSelection: 'Сначала выберите хотя бы одну услугу',
+        copied: 'Готово! Итог скопирован',
+        copyFailed: 'Не удалось скопировать — выделите и скопируйте итог вручную',
+        languageName: 'Язык: русский',
+        serviceNames: ['Маникюр', 'Педикюр', 'Покрытие гель-лак', 'Дизайн ногтей', 'Наращивание']
+      },
+      uz: {
+        title: 'Guzal — salon xizmatlari kalkulyatori',
+        heading: 'Xizmatlar kalkulyatori',
+        intro: 'Xizmatlarni tanlang — jami summa va vaqt avtomatik hisoblanadi.',
+        services: 'Xizmatlar',
+        servicesLabel: 'Xizmatlar narxini hisoblash',
+        discount: 'Chegirma',
+        discountInput: 'Chegirma foizi',
+        payable: 'To‘lov uchun',
+        copyButton: 'Natijani nusxalash',
+        emptyDuration: 'Xizmatlarni tanlang',
+        hour: ['soat', 'soat', 'soat'],
+        minute: ['daqiqa', 'daqiqa', 'daqiqa'],
+        currency: 'so‘m',
+        noServices: 'Iltimos, xizmatlarni tanlang.',
+        summaryStart: 'Xizmatlaringiz: ',
+        summaryTotal: '. Jami: ',
+        summaryDuration: ', taxminan ',
+        serviceCount: ['ta xizmat', 'ta xizmat', 'ta xizmat'],
+        savings: 'Chegirma',
+        savingsSeparator: ' — tejaysiz ',
+        maxDiscount: 'Chegirma 50% dan oshmasligi kerak',
+        negativeDiscount: 'Chegirma manfiy bo‘lishi mumkin emas',
+        priceHint: 'Narxni o‘zgartirish uchun ustiga bosing. O‘zgarishlar ushbu brauzerda saqlanadi.',
+        priceSaved: 'Narx brauzerda saqlandi',
+        priceStorageError: 'Narxlarni bu brauzerda saqlab yoki yuklab bo‘lmadi.',
+        priceInvalid: 'Narxni harflarsiz va minus belgisiz, butun son bilan kiriting.',
+        priceRestored: 'Noto‘g‘ri narx bekor qilindi, avvalgi qiymat tiklandi.',
+        priceInput: 'Xizmat narxi',
+        copyHint: 'Matnni mijozga darhol yuborishingiz mumkin',
+        noSelection: 'Avval kamida bitta xizmatni tanlang',
+        copied: 'Tayyor! Natija nusxalandi',
+        copyFailed: 'Nusxalab bo‘lmadi — natijani qo‘lda belgilang va nusxalang',
+        languageName: 'Til: o‘zbekcha',
+        serviceNames: ['Manikyur', 'Pedikyur', 'Gel-lak bilan qoplash', 'Tirnoq dizayni', 'Tirnoqni uzaytirish']
+      }
+    };
+
+    function currentText() {
+      return translations[language];
+    }
+
+    function pluralForm(value, forms) {
+      if (language === 'uz') return forms[0];
+      const lastTwo = value % 100;
+      if (lastTwo >= 11 && lastTwo <= 14) return forms[2];
+      const lastDigit = value % 10;
+      if (lastDigit === 1) return forms[0];
+      if (lastDigit >= 2 && lastDigit <= 4) return forms[1];
+      return forms[2];
+    }
+
+    function setHint(key) {
+      hintElement.textContent = currentText()[key];
+    }
+
+    function setPriceStatus(key, isError) {
+      priceStatusKey = key;
+      priceStatusIsError = Boolean(isError);
+      priceStatusElement.textContent = currentText()[key];
+      priceStatusElement.classList.toggle('is-error', priceStatusIsError);
+    }
+
+    function updateLanguage(nextLanguage) {
+      language = nextLanguage;
+      const text = currentText();
+
+      document.documentElement.lang = language;
+      document.title = text.title;
+      document.querySelectorAll('[data-i18n]').forEach(function (element) {
+        element.textContent = text[element.dataset.i18n];
+      });
+      document.querySelectorAll('[data-i18n-aria]').forEach(function (element) {
+        element.setAttribute('aria-label', text[element.dataset.i18nAria]);
+      });
+      discountInput.setAttribute('aria-label', text.discountInput);
+      languageButtons.forEach(function (button) {
+        button.setAttribute('aria-pressed', String(button.dataset.language === language));
+        button.setAttribute('aria-label', translations[button.dataset.language].languageName);
+      });
+      serviceInputs.forEach(function (input, index) {
+        input.parentElement.querySelector('.service-name').textContent = text.serviceNames[index];
+        input.parentElement.querySelector('.service-time').textContent =
+          input.dataset.minutes + ' ' + pluralForm(Number(input.dataset.minutes), text.minute);
+        input.parentElement.querySelector('.service-price-input').setAttribute(
+          'aria-label', text.priceInput + ': ' + text.serviceNames[index]
+        );
+        input.parentElement.querySelector('.service-price-input').value = formatMoney(Number(input.dataset.price));
+        input.parentElement.querySelector('.service-currency').textContent = text.currency;
+      });
+
+      priceStatusElement.textContent = text[priceStatusKey];
+      priceStatusElement.classList.toggle('is-error', priceStatusIsError);
+      setHint('copyHint');
+      updateSummary();
+    }
+
+    function loadSavedPrices() {
+      try {
+        const savedPrices = window.localStorage.getItem(priceStorageKey);
+        if (savedPrices === null) return;
+
+        const parsedPrices = JSON.parse(savedPrices);
+        if (!parsedPrices || typeof parsedPrices !== 'object' || Array.isArray(parsedPrices)) {
+          throw new Error('Сохранённые цены имеют неверный формат');
+        }
+
+        const loadedPrices = serviceInputs.map(function (input) {
+          const serviceId = input.dataset.serviceId;
+          if (!Object.prototype.hasOwnProperty.call(parsedPrices, serviceId)) return null;
+          const price = parsedPrices[serviceId];
+          if (!Number.isSafeInteger(price) || price < 0) {
+            throw new Error('Сохранённая цена услуги имеет неверный формат: ' + serviceId);
+          }
+          return price;
+        });
+
+        serviceInputs.forEach(function (input, index) {
+          if (loadedPrices[index] !== null) input.dataset.price = String(loadedPrices[index]);
+        });
+      } catch (error) {
+        setPriceStatus('priceStorageError', true);
+        console.error('Ошибка загрузки сохранённых цен:', error);
+      }
+    }
+
+    function savePrices() {
+      const prices = {};
+      serviceInputs.forEach(function (input) {
+        prices[input.dataset.serviceId] = Number(input.dataset.price);
+      });
+
+      try {
+        window.localStorage.setItem(priceStorageKey, JSON.stringify(prices));
+        return true;
+      } catch (error) {
+        setPriceStatus('priceStorageError', true);
+        console.error('Ошибка сохранения цен:', error);
+        return false;
+      }
+    }
+
+    function readPrice(value) {
+      const digits = value.trim().replace(/\s/g, '');
+      if (!/^\d+$/.test(digits)) return null;
+      const price = Number(digits);
+      return Number.isSafeInteger(price) ? price : null;
+    }
+
+    function formatMoney(amount) {
+      return new Intl.NumberFormat('ru-RU').format(amount).replace(/[\u00a0\u202f]/g, ' ');
+    }
+
+    function formatDuration(minutes) {
+      const hours = Math.floor(minutes / 60);
+      const remainingMinutes = minutes % 60;
+      const parts = [];
+      const text = currentText();
+
+      if (hours) parts.push(hours + ' ' + pluralForm(hours, text.hour));
+      if (remainingMinutes) parts.push(remainingMinutes + ' ' + pluralForm(remainingMinutes, text.minute));
+
+      return parts.join(' ') || '0 ' + text.minute[0];
+    }
+
+    function updateSummary() {
+      const selected = serviceInputs.filter(function (input) { return input.checked; });
+      const originalTotal = selected.reduce(function (sum, input) { return sum + Number(input.dataset.price); }, 0);
+      const totalMinutes = selected.reduce(function (sum, input) { return sum + Number(input.dataset.minutes); }, 0);
+      const enteredDiscount = discountInput.value === '' ? 0 : Number(discountInput.value);
+      const invalidDiscount = !Number.isFinite(enteredDiscount) || enteredDiscount < 0 || enteredDiscount > 50;
+      const discount = invalidDiscount ? 0 : enteredDiscount;
+      const total = Math.round(originalTotal * (1 - discount / 100));
+      const duration = formatDuration(totalMinutes);
+      const names = selected.map(function (input) {
+        return currentText().serviceNames[serviceInputs.indexOf(input)]
+          .toLocaleLowerCase(language === 'ru' ? 'ru-RU' : 'uz-UZ');
+      });
+
+      discountWarning.hidden = !invalidDiscount;
+      discountWarning.textContent = enteredDiscount < 0
+        ? currentText().negativeDiscount
+        : invalidDiscount ? currentText().maxDiscount : '';
+      totalElement.textContent = formatMoney(total) + ' ' + currentText().currency;
+      durationElement.textContent = selected.length
+        ? (language === 'ru' ? 'Примерно ' : 'Taxminan ') + duration
+        : currentText().emptyDuration;
+      countDetail.hidden = !selected.length;
+      countElement.textContent = selected.length + ' ' + pluralForm(selected.length, currentText().serviceCount);
+      savingsElement.hidden = !selected.length || discount === 0;
+      savingsElement.textContent = savingsElement.hidden ? '' : currentText().savings + ' ' + discount + '%' +
+        currentText().savingsSeparator + formatMoney(originalTotal - total) + ' ' + currentText().currency;
+      currentSummary = names.length
+        ? currentText().summaryStart + names.join(', ') + currentText().summaryTotal + formatMoney(total) +
+          ' ' + currentText().currency + currentText().summaryDuration + duration + '.'
+        : currentText().noServices;
+    }
+
+    languageButtons.forEach(function (button) {
+      button.addEventListener('click', function () {
+        updateLanguage(button.dataset.language);
+      });
+    });
+
+    priceInputs.forEach(function (priceInput) {
+      const serviceInput = serviceInputs.find(function (input) {
+        return input.dataset.serviceId === priceInput.dataset.serviceId;
+      });
+
+      priceInput.addEventListener('input', function () {
+        const price = readPrice(priceInput.value);
+        if (price === null) {
+          priceInput.setAttribute('aria-invalid', 'true');
+          setPriceStatus('priceInvalid', true);
+          return;
+        }
+
+        priceInput.removeAttribute('aria-invalid');
+        serviceInput.dataset.price = String(price);
+        updateSummary();
+        if (savePrices()) setPriceStatus('priceSaved', false);
+      });
+
+      priceInput.addEventListener('blur', function () {
+        const price = readPrice(priceInput.value);
+        if (price === null) {
+          priceInput.value = formatMoney(Number(serviceInput.dataset.price));
+          priceInput.removeAttribute('aria-invalid');
+          setPriceStatus('priceRestored', true);
+          return;
+        }
+        priceInput.value = formatMoney(price);
+      });
+    });
+
+    serviceInputs.forEach(function (input) {
+      input.addEventListener('change', updateSummary);
+    });
+
+    discountInput.addEventListener('input', updateSummary);
+
+    document.getElementById('copy').addEventListener('click', async function () {
+      if (!serviceInputs.some(function (input) { return input.checked; })) {
+        setHint('noSelection');
+        return;
+      }
+
+      try {
+        if (navigator.clipboard && window.isSecureContext) {
+          await navigator.clipboard.writeText(currentSummary);
+        } else {
+          const temporaryInput = document.createElement('textarea');
+          temporaryInput.value = currentSummary;
+          temporaryInput.setAttribute('readonly', '');
+          temporaryInput.style.position = 'fixed';
+          temporaryInput.style.opacity = '0';
+          document.body.appendChild(temporaryInput);
+          temporaryInput.select();
+          const copied = document.execCommand('copy');
+          temporaryInput.remove();
+          if (!copied) throw new Error('Не удалось скопировать текст');
+        }
+        setHint('copied');
+      } catch (error) {
+        setHint('copyFailed');
+        console.error('Ошибка копирования итога:', error);
+      }
+    });
+
+    loadSavedPrices();
+    updateLanguage('ru');
+  </script>
+</body>
+</html>
